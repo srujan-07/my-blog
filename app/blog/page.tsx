@@ -14,7 +14,7 @@ export default function Blog() {
       <header className="space-y-2">
         <div className="flex items-center gap-2 text-xl font-bold">
           <span className="text-accent underline decoration-2 underline-offset-4">$ ls</span>
-          <span className="text-white">./posts</span>
+          <span className="text-white">./blogs</span>
           <span className="cursor" />
         </div>
         <p className="text-gray-500 text-sm font-bold uppercase tracking-widest italic pt-2">

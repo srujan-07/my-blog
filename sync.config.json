@@ -1,6 +1,6 @@
 {
   "sourcePath": "C:/users/sruja/OneDrive/Documents/Obsidian Vault/blogs",
-  "targetPath": "posts",
+  "targetPath": "blogs",
   "git": {
     "autoCommit": true,
     "commitMessage": "sync: update blog posts from obsidian",

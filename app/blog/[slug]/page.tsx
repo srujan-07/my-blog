@@ -60,7 +60,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
           <div className="flex items-center gap-4">
             <span className="w-12 text-gray-600">PATH:</span>
-            <span>~/posts/{post.slug}.md</span>
+            <span>~/blogs/{post.slug}.md</span>
           </div>
         </div>
       </header>
