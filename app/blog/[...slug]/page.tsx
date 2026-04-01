@@ -4,12 +4,13 @@ import { markdownToHtml } from "@/lib/markdown";
 import { notFound } from "next/navigation";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const decodedSlug = slug.map(decodeURIComponent).join('/');
+  const post = getPostBySlug(decodedSlug);
   
   if (!post) return { title: "Post Not Found" };
 
@@ -21,7 +22,8 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const decodedSlug = slug.map(decodeURIComponent).join('/');
+  const post = getPostBySlug(decodedSlug);
 
   if (!post) {
     notFound();
