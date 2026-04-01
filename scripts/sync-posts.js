@@ -84,16 +84,21 @@ function syncMarkdown(src, dest) {
         let transformed = false;
 
         // 1. Replace Obsidian image syntax: ![[image.png]]
+        // We use encodeURIComponent so spaces in filenames become %20
         const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
         if (obsidianImageRegex.test(content)) {
-          content = content.replace(obsidianImageRegex, '![image](/images/$1)');
+          content = content.replace(obsidianImageRegex, (match, p1) => {
+            return `![image](/images/${encodeURIComponent(p1)})`;
+          });
           transformed = true;
         }
 
         // 2. Handle relative paths: ![alt](../images/image.png)
         const relativeImageRegex = /!\[(.*?)\]\((?!http|\/)[^\)]*?([^\/\\]+\.(?:png|jpe?g|gif|webp|svg))\)/gi;
         if (relativeImageRegex.test(content)) {
-          content = content.replace(relativeImageRegex, '![$1](/images/$2)');
+          content = content.replace(relativeImageRegex, (match, p1, p2) => {
+            return `![${p1}](/images/${encodeURIComponent(p2)})`;
+          });
           transformed = true;
         }
 
