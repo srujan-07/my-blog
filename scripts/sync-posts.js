@@ -15,18 +15,13 @@ const sourceDir = path.isAbsolute(config.sourcePath) ? config.sourcePath : path.
 const targetDir = path.join(process.cwd(), config.targetPath);
 const imageTargetDir = path.join(process.cwd(), 'public', 'images');
 
-/**
- * Recursively copy markdown files and images from source to target.
- */
-function syncFiles(src, dest) {
-  if (!fs.existsSync(src)) {
-    console.warn(`[WARN] Source directory not found: ${src}`);
-    return;
-  }
+const vaultDir = path.dirname(sourceDir);
 
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
+/**
+ * Recursively scan a directory for images and copy them.
+ */
+function syncImages(src) {
+  if (!fs.existsSync(src)) return;
 
   if (!fs.existsSync(imageTargetDir)) {
     fs.mkdirSync(imageTargetDir, { recursive: true });
@@ -35,14 +30,12 @@ function syncFiles(src, dest) {
   const entries = fs.readdirSync(src, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    // Skip hidden files and obsidian folder
     if (entry.name.startsWith('.') || entry.name === '.obsidian') continue;
-
+    
+    const srcPath = path.join(src, entry.name);
+    
     if (entry.isDirectory()) {
-      syncFiles(srcPath, destPath);
+      syncImages(srcPath);
     } else if (entry.name.match(/\.(png|jpe?g|gif|webp|svg)$/i)) {
       const imageDestPath = path.join(imageTargetDir, entry.name);
       
@@ -55,6 +48,33 @@ function syncFiles(src, dest) {
         fs.copyFileSync(srcPath, imageDestPath);
         console.log(`[SYNC] Copied image: ${entry.name}`);
       }
+    }
+  }
+}
+
+/**
+ * Recursively copy markdown files from source to target.
+ */
+function syncMarkdown(src, dest) {
+  if (!fs.existsSync(src)) {
+    console.warn(`[WARN] Source directory not found: ${src}`);
+    return;
+  }
+
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.name.startsWith('.') || entry.name === '.obsidian') continue;
+
+    if (entry.isDirectory()) {
+      syncMarkdown(srcPath, destPath);
     } else if (entry.name.endsWith('.md')) {
       const isExisting = fs.existsSync(destPath);
       const fileModified = !isExisting || fs.statSync(srcPath).mtime > fs.statSync(destPath).mtime;
@@ -118,7 +138,8 @@ console.log(`[PATH] Source: ${sourceDir}`);
 console.log(`[PATH] Target: ${targetDir}`);
 console.log(`[PATH] Images: ${imageTargetDir}`);
 
-syncFiles(sourceDir, targetDir);
+syncImages(vaultDir);
+syncMarkdown(sourceDir, targetDir);
 
 if (config.git.autoCommit) {
   handleGit();
