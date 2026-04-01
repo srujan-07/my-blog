@@ -1,0 +1,9 @@
+{
+  "sourcePath": "C:/Users/sruja/ObsidianVault/blogs",
+  "targetPath": "posts",
+  "git": {
+    "autoCommit": true,
+    "commitMessage": "sync: update blog posts from obsidian",
+    "autoPush": true
+  }
+}
