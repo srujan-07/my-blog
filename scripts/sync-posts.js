@@ -13,9 +13,10 @@ try {
 
 const sourceDir = path.isAbsolute(config.sourcePath) ? config.sourcePath : path.join(process.cwd(), config.sourcePath);
 const targetDir = path.join(process.cwd(), config.targetPath);
+const imageTargetDir = path.join(process.cwd(), 'public', 'images');
 
 /**
- * Recursively copy markdown files from source to target.
+ * Recursively copy markdown files and images from source to target.
  */
 function syncFiles(src, dest) {
   if (!fs.existsSync(src)) {
@@ -25,6 +26,10 @@ function syncFiles(src, dest) {
 
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true });
+  }
+
+  if (!fs.existsSync(imageTargetDir)) {
+    fs.mkdirSync(imageTargetDir, { recursive: true });
   }
 
   const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -38,13 +43,46 @@ function syncFiles(src, dest) {
 
     if (entry.isDirectory()) {
       syncFiles(srcPath, destPath);
-    } else if (entry.name.endsWith('.md')) {
-      const fileModified = !fs.existsSync(destPath) || 
-                           fs.statSync(srcPath).mtime > fs.statSync(destPath).mtime;
+    } else if (entry.name.match(/\.(png|jpe?g|gif|webp|svg)$/i)) {
+      const imageDestPath = path.join(imageTargetDir, entry.name);
+      
+      let fileModified = true;
+      if (fs.existsSync(imageDestPath)) {
+        fileModified = fs.statSync(srcPath).mtime > fs.statSync(imageDestPath).mtime;
+      }
 
       if (fileModified) {
-        fs.copyFileSync(srcPath, destPath);
-        console.log(`[SYNC] ${fs.existsSync(destPath) ? 'Updated' : 'Copied'}: ${path.relative(sourceDir, srcPath)}`);
+        fs.copyFileSync(srcPath, imageDestPath);
+        console.log(`[SYNC] Copied image: ${entry.name}`);
+      }
+    } else if (entry.name.endsWith('.md')) {
+      const isExisting = fs.existsSync(destPath);
+      const fileModified = !isExisting || fs.statSync(srcPath).mtime > fs.statSync(destPath).mtime;
+
+      if (fileModified) {
+        let content = fs.readFileSync(srcPath, 'utf8');
+        let transformed = false;
+
+        // 1. Replace Obsidian image syntax: ![[image.png]]
+        const obsidianImageRegex = /!\[\[([^\]]+)\]\]/g;
+        if (obsidianImageRegex.test(content)) {
+          content = content.replace(obsidianImageRegex, '![image](/images/$1)');
+          transformed = true;
+        }
+
+        // 2. Handle relative paths: ![alt](../images/image.png)
+        const relativeImageRegex = /!\[(.*?)\]\((?!http|\/)[^\)]*?([^\/\\]+\.(?:png|jpe?g|gif|webp|svg))\)/gi;
+        if (relativeImageRegex.test(content)) {
+          content = content.replace(relativeImageRegex, '![$1](/images/$2)');
+          transformed = true;
+        }
+
+        fs.writeFileSync(destPath, content);
+        
+        console.log(`[SYNC] ${isExisting ? 'Updated' : 'Copied'} markdown: ${entry.name}`);
+        if (transformed) {
+          console.log(`[SYNC] Rewrote image links in: ${entry.name}`);
+        }
       }
     }
   }
@@ -78,6 +116,7 @@ function handleGit() {
 console.log('--- BLOG SYNC INITIALIZED ---');
 console.log(`[PATH] Source: ${sourceDir}`);
 console.log(`[PATH] Target: ${targetDir}`);
+console.log(`[PATH] Images: ${imageTargetDir}`);
 
 syncFiles(sourceDir, targetDir);
 
