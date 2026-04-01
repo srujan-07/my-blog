@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Srujan's Terminal Blog + Obsidian Sync
 
-## Getting Started
+This project is a minimalist, terminal-themed Next.js markdown blog powered by an automated Git-sync pipeline directly connected to an Obsidian vault.
 
-First, run the development server:
+## 🚀 System Architecture
+- **Frontend**: Next.js App Router, Tailwind CSS (Terminal hacker aesthetics)
+- **Content Engine**: Local Obsidian Vault 
+- **CI/CD Integration**: Node.js automated synchronization pushing to GitHub -> Vercel.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🛠️ Obsidian Setup Guide
+
+To ensure your Obsidian vault interacts seamlessly with the blog, follow these steps:
+
+### 1. Create or Open the Vault
+Ensure you have an Obsidian vault created at the path specified in your `sync.config.json`.
+- Default Location: `C:/Users/sruja/ObsidianVault/blogs`
+
+1. Open Obsidian.
+2. Click **"Open folder as vault"**.
+3. Point it to `C:/Users/sruja/ObsidianVault/blogs` (Create the folders if they don't exist).
+
+### 2. Folder Structure
+The sync script mirrors your Obsidian folder structure into the blog. You can organize your posts logically:
+```text
+C:/Users/sruja/ObsidianVault/blogs/
+├── cves/
+│   └── cve-2024-test.md
+├── reversing/
+│   └── malware-analysis.md
+└── ctf-writeup.md
+```
+*Note: Any files running outside of `.md` format, hidden files, or the `.obsidian` configurations directory will be safely ignored.*
+
+### 3. Writing Posts (Frontmatter is Required)
+Every markdown file must begin with YAML frontmatter so the blog can render its metadata natively.
+
+Use this exact template at the top of every new `.md` file in Obsidian:
+
+```yaml
+---
+title: "Your Post Title Here"
+date: "2026-04-02"
+tags: ["ctf", "security", "linux"]
+description: "A brief summary of what the post is about."
+---
+
+# Your Content Here
+Your markdown content begins below the dashes...
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4. Running the Sync
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Whenever you finish writing or updating a post in Obsidian, open a terminal in the root of this Next.js project and run:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run sync
+```
 
-## Learn More
+**What happens underneath:**
+1. The script (`scripts/sync-posts.js`) scans `C:/Users/sruja/ObsidianVault/blogs`.
+2. It copies updated or new `.md` files to the blog's `./posts` directory.
+3. It stages the changes (`git add .`).
+4. It creates a commit (`git commit -m "sync: update blog posts from obsidian"`).
+5. It pushes the updates to your repository (`git push`), which automatically triggers a live deployment on Vercel.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ⚙️ Configuration
+You can change the vault path or git behavior at any time without touching code by editing `sync.config.json`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```json
+{
+  "sourcePath": "C:/Users/sruja/ObsidianVault/blogs",
+  "targetPath": "posts",
+  "git": {
+    "autoCommit": true,
+    "commitMessage": "sync: update blog posts from obsidian",
+    "autoPush": true
+  }
+}
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 Local Development
+To run the terminal blog locally for design testing:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) (or whichever port is assigned) in your browser.
