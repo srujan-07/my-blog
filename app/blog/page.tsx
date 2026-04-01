@@ -32,7 +32,7 @@ export default function Blog() {
                 className="group flex flex-col sm:flex-row sm:items-baseline sm:gap-6 py-2 px-4 border-l-2 border-transparent hover:border-accent hover:bg-accent/5 transition-all outline-none"
               >
                 <span className="text-gray-500 text-xs font-mono shrink-0">
-                  [{new Date(post.date).toISOString().split('T')[0]}]
+                  [{post.date && !isNaN(Date.parse(post.date)) ? new Date(post.date).toISOString().split('T')[0] : 'UNKNOWN-DATE'}]
                 </span>
                 <span className="text-lg font-bold group-hover:text-accent transition-colors">
                   {post.slug}.md

@@ -52,7 +52,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         <div className="grid gap-2 text-xs font-mono uppercase tracking-widest text-gray-500">
           <div className="flex items-center gap-4">
             <span className="w-12 text-gray-600">DATE:</span>
-            <span>{new Date(post.date).toISOString().split('T')[0]}</span>
+            <span>{post.date && !isNaN(Date.parse(post.date)) ? new Date(post.date).toISOString().split('T')[0] : 'UNKNOWN-DATE'}</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="w-12 text-gray-600">TAGS:</span>

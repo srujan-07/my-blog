@@ -15,16 +15,16 @@ To ensure your Obsidian vault interacts seamlessly with the blog, follow these s
 
 ### 1. Create or Open the Vault
 Ensure you have an Obsidian vault created at the path specified in your `sync.config.json`.
-- Default Location: `C:/Users/sruja/ObsidianVault/blogs`
+- Default Location: `C:/users/sruja/OneDrive/Documents/Obsidian Vault`
 
 1. Open Obsidian.
 2. Click **"Open folder as vault"**.
-3. Point it to `C:/Users/sruja/ObsidianVault/blogs` (Create the folders if they don't exist).
+3. Point it to `C:/users/sruja/OneDrive/Documents/Obsidian Vault` (Create the folders if they don't exist).
 
 ### 2. Folder Structure
 The sync script mirrors your Obsidian folder structure into the blog. You can organize your posts logically:
 ```text
-C:/Users/sruja/ObsidianVault/blogs/
+C:/users/sruja/OneDrive/Documents/Obsidian Vault/
 ├── cves/
 │   └── cve-2024-test.md
 ├── reversing/
@@ -59,7 +59,7 @@ npm run sync
 ```
 
 **What happens underneath:**
-1. The script (`scripts/sync-posts.js`) scans `C:/Users/sruja/ObsidianVault/blogs`.
+1. The script (`scripts/sync-posts.js`) scans `C:/users/sruja/OneDrive/Documents/Obsidian Vault`.
 2. It copies updated or new `.md` files to the blog's `./posts` directory.
 3. It stages the changes (`git add .`).
 4. It creates a commit (`git commit -m "sync: update blog posts from obsidian"`).
@@ -72,7 +72,7 @@ You can change the vault path or git behavior at any time without touching code 
 
 ```json
 {
-  "sourcePath": "C:/Users/sruja/ObsidianVault/blogs",
+  "sourcePath": "C:/users/sruja/OneDrive/Documents/Obsidian Vault",
   "targetPath": "posts",
   "git": {
     "autoCommit": true,
