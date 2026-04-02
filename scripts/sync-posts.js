@@ -114,6 +114,28 @@ function syncMarkdown(src, dest) {
 }
 
 /**
+ * Recursively remove files/folders in dest that no longer exist in src.
+ */
+function pruneDeleted(src, dest) {
+  if (!fs.existsSync(dest)) return;
+
+  const destEntries = fs.readdirSync(dest, { withFileTypes: true });
+
+  for (const entry of destEntries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (!fs.existsSync(srcPath)) {
+      // Source counterpart is gone — delete from target
+      fs.rmSync(destPath, { recursive: true, force: true });
+      console.log(`[SYNC] Deleted (no longer in source): ${destPath}`);
+    } else if (entry.isDirectory()) {
+      pruneDeleted(srcPath, destPath);
+    }
+  }
+}
+
+/**
  * Automate Git commands.
  */
 function handleGit() {
@@ -145,6 +167,7 @@ console.log(`[PATH] Images: ${imageTargetDir}`);
 
 syncImages(vaultDir);
 syncMarkdown(sourceDir, targetDir);
+pruneDeleted(sourceDir, targetDir);
 
 if (config.git.autoCommit) {
   handleGit();
