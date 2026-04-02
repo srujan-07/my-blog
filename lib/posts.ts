@@ -96,3 +96,79 @@ export function getPostBySlug(slug: string): Post | null {
     return null;
   }
 }
+
+export interface DirectoryContent {
+  directories: string[];
+  posts: Post[];
+}
+
+export function isDirectory(slug: string): boolean {
+  try {
+    const decodedSlug = decodeURIComponent(slug);
+    const fullPath = path.join(postsDirectory, decodedSlug);
+    const normalizedFullPath = path.normalize(fullPath);
+    if (!normalizedFullPath.startsWith(path.normalize(postsDirectory))) {
+      return false;
+    }
+    return fs.existsSync(normalizedFullPath) && fs.statSync(normalizedFullPath).isDirectory();
+  } catch (error) {
+    return false;
+  }
+}
+
+export function getDirectoryContent(subPath: string = ""): DirectoryContent | null {
+  try {
+    const decodedSlug = decodeURIComponent(subPath);
+    const fullPath = path.join(postsDirectory, decodedSlug);
+    
+    const normalizedFullPath = path.normalize(fullPath);
+    if (!normalizedFullPath.startsWith(path.normalize(postsDirectory))) {
+      return null;
+    }
+
+    if (!fs.existsSync(normalizedFullPath) || !fs.statSync(normalizedFullPath).isDirectory()) {
+      return null;
+    }
+
+    const items = fs.readdirSync(normalizedFullPath, { withFileTypes: true });
+    
+    const directories: string[] = [];
+    const posts: Post[] = [];
+
+    for (const item of items) {
+      if (item.name.startsWith('.')) continue;
+
+      if (item.isDirectory()) {
+        directories.push(item.name);
+      } else if (item.name.endsWith('.md')) {
+        const filePath = path.join(normalizedFullPath, item.name);
+        const fileContents = fs.readFileSync(filePath, "utf8");
+        const { data, content } = matter(fileContents);
+        
+        const relativePath = path.relative(postsDirectory, filePath).replace(/\\/g, '/');
+        const slug = relativePath.replace(/\.md$/, "");
+
+        posts.push({
+          slug,
+          title: data.title || "Untitled",
+          date: data.date || "",
+          tags: data.tags || [],
+          description: data.description || "",
+          content,
+        } as Post);
+      }
+    }
+
+    posts.sort((a, b) => {
+      if (a.date < b.date) return 1;
+      return -1;
+    });
+
+    directories.sort();
+
+    return { directories, posts };
+  } catch (error) {
+    console.error(`Error reading directory ${subPath}:`, error);
+    return null;
+  }
+}

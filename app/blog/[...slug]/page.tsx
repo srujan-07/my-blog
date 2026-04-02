@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { getPostBySlug } from "@/lib/posts";
+import { getPostBySlug, isDirectory, getDirectoryContent } from "@/lib/posts";
 import { markdownToHtml } from "@/lib/markdown";
 import { notFound } from "next/navigation";
+import DirectoryListing from "@/components/DirectoryListing";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -10,9 +11,14 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = slug.map(decodeURIComponent).join('/');
+  
+  if (isDirectory(decodedSlug)) {
+    return { title: `./blogs/${decodedSlug} | Terminal Blog`, description: `Directory listing for ${decodedSlug}` };
+  }
+
   const post = getPostBySlug(decodedSlug);
   
-  if (!post) return { title: "Post Not Found" };
+  if (!post) return { title: "Not Found" };
 
   return {
     title: `${post.title} | Terminal Blog`,
@@ -23,6 +29,13 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
   const decodedSlug = slug.map(decodeURIComponent).join('/');
+  
+  if (isDirectory(decodedSlug)) {
+    const content = getDirectoryContent(decodedSlug);
+    if (!content) return notFound();
+    return <DirectoryListing currentPath={decodedSlug} content={content} />;
+  }
+
   const post = getPostBySlug(decodedSlug);
 
   if (!post) {

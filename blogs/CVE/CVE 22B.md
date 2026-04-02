@@ -1,5 +1,5 @@
 ---
-title: CVE 22B
+title: CVE
 date: 2026-04-02
 tags:
   - blog
