@@ -64,6 +64,36 @@ export function getAllPosts(): Post[] {
   });
 }
 
+export function getAllSlugs(): string[][] {
+  if (!fs.existsSync(postsDirectory)) {
+    return [];
+  }
+
+  function getPaths(dir: string): string[][] {
+    let slugs: string[][] = [];
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+
+    for (const item of items) {
+      const fullPath = path.join(dir, item.name);
+      const relativePath = path.relative(postsDirectory, fullPath).replace(/\\/g, '/');
+      const slugParts = relativePath.split('/');
+
+      if (item.isDirectory()) {
+        slugs.push(slugParts);
+        slugs = slugs.concat(getPaths(fullPath));
+      } else if (item.name.endsWith('.md')) {
+        // Remove .md from the last part of the slug
+        const fileSlug = [...slugParts];
+        fileSlug[fileSlug.length - 1] = fileSlug[fileSlug.length - 1].replace(/\.md$/, '');
+        slugs.push(fileSlug);
+      }
+    }
+    return slugs;
+  }
+
+  return getPaths(postsDirectory);
+}
+
 export function getPostBySlug(slug: string): Post | null {
   try {
     // Reconstruct the secure path cross-platform compatible

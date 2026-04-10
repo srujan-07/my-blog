@@ -1,8 +1,15 @@
 import Link from "next/link";
-import { getPostBySlug, isDirectory, getDirectoryContent } from "@/lib/posts";
+import { getPostBySlug, isDirectory, getDirectoryContent, getAllSlugs } from "@/lib/posts";
 import { markdownToHtml } from "@/lib/markdown";
 import { notFound } from "next/navigation";
 import DirectoryListing from "@/components/DirectoryListing";
+
+export async function generateStaticParams() {
+  const slugs = getAllSlugs();
+  return slugs.map((slug) => ({
+    slug: slug,
+  }));
+}
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
