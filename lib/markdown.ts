@@ -8,5 +8,11 @@ import html from "remark-html";
  */
 export async function markdownToHtml(content: string): Promise<string> {
   const result = await remark().use(html).process(content);
-  return result.toString();
+  let htmlContent = result.toString();
+  
+  // Prefix absolute paths for images and links if on GitHub Pages
+  const basePath = '/my-blog';
+  htmlContent = htmlContent.replace(/(src|href)="(\/images\/|\/blogs\/)/g, `$1="${basePath}$2`);
+  
+  return htmlContent;
 }
